@@ -1,91 +1,139 @@
-# Proyecto de Adopciones
+# Proyecto de Adopciones — Entrega Final Backend III
 
-Este proyecto es una API en Node.js/Express para gestionar adopciones de mascotas.
+API en Node.js/Express para gestionar adopciones de mascotas.
+
+## Enlaces de entrega
+
+| Recurso | URL |
+|--------|-----|
+| **Repositorio GitHub** (código, tests, Dockerfile) | https://github.com/pepeluquet/backend-III-entrega |
+| **Docker Hub (usuario)** | https://hub.docker.com/u/pepeluquet |
+| **Imagen Docker pública** | https://hub.docker.com/r/pepeluquet/adopciones-api |
+
+> Si la imagen aún no está publicada, sigue la sección [Publicación en Docker Hub](#publicación-en-docker-hub) y actualiza el tag `v1.0.0` / `latest` en tu cuenta.
 
 ## Estructura del proyecto
 
 - `src/app.js`: Configuración principal de Express, rutas y Swagger.
-- `src/routes/adoption.router.js`: Router con los endpoints de adopción.
-- `src/controllers/adoptions.controller.js`: Lógica de negocio de las adopciones.
-- `src/services/index.js`: Inicializa servicios/repositories para usuarios, mascotas y adopciones.
-- `test/adoptions.router.test.js`: Tests funcionales de los endpoints de adopciones.
-- `Dockerfile`: Definición de la imagen Docker optimizada.
-- `.dockerignore`: Evita copiar archivos innecesarios a la imagen.
+- `src/routes/adoption.router.js`: Endpoints de adopción.
+- `src/controllers/adoptions.controller.js`: Lógica de negocio.
+- `src/services/index.js`: Servicios/repositories (mockeados en tests).
+- `test/adoptions.router.test.js`: Tests funcionales con **Sinon** (mocks) y **Supertest**.
+- `Dockerfile`: Imagen optimizada (`node:20-alpine`, capas en caché, usuario no root).
+- `.dockerignore`: Excluye `node_modules`, tests y archivos locales.
 
-## Cómo ejecutar los tests funcionales
+### Endpoints cubiertos por tests
 
-1. Instala dependencias:
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| `GET` | `/api/adoptions` | Listar adopciones |
+| `GET` | `/api/adoptions/:aid` | Obtener adopción por ID |
+| `POST` | `/api/adoptions/:uid/:pid` | Crear adopción (usuario + mascota) |
 
-```bash
-npm install
-```
+Los tests aíslan MongoDB y la base de datos mediante stubs de `adoptionsService`, `usersService` y `petsService`.
 
-2. Ejecuta los tests:
+## Tests funcionales
+
+### Requisitos
+
+- Node.js 18+ recomendado
+- `npm install` en la raíz del proyecto
+
+### Ejecutar
 
 ```bash
 npm test
 ```
 
-Los tests cubren:
+Salida esperada (resumen): **12 passing** — casos de éxito, validación (400), no encontrado (404) y error de servidor (500).
 
-- `GET /api/adoptions`: listar todas las adopciones.
-- `GET /api/adoptions/:aid`: obtener adopción por ID.
-- `POST /api/adoptions/:uid/:pid`: crear adopción vinculando usuario y mascota.
+### Evidencia de tests
 
-## Construcción de la imagen Docker
+Guarda la salida completa del comando anterior o una captura en `docs/evidencias/tests.png` (opcional). Ejemplo de salida exitosa:
 
-1. Construye la imagen localmente:
-
-```bash
-docker build -t tu-usuario-dockerhub/adopciones-api:v1.0.0 .
+```
+Adoption router - functional tests
+  GET /api/adoptions
+    √ returns 200 and all adoptions on success
+    √ returns 500 when the service throws
+  GET /api/adoptions/:aid
+    √ returns 200 and the adoption when found
+    √ returns 400 for an invalid adoption id
+    √ returns 404 when the adoption does not exist
+    √ returns 500 when the service throws
+  POST /api/adoptions/:uid/:pid
+    √ returns 201 when adoption is created successfully
+    ...
+12 passing
 ```
 
-2. Ejecuta el contenedor:
+## Docker
+
+### Construir imagen local
 
 ```bash
-docker run -d -p 8080:8080 \
-  -e MONGO_URL="mongodb://host.docker.internal:27017/clase39-adopme" \
-  -e PORT=8080 \
-  tu-usuario-dockerhub/adopciones-api:v1.0.0
+docker build -t pepeluquet/adopciones-api:v1.0.0 .
 ```
 
-> En Windows, si el contenedor necesita conectarse a MongoDB local, `host.docker.internal` suele ser la opción correcta.
+### Ejecutar contenedor
 
-## Buenas prácticas aplicadas en Docker
-
-- **Imagen base ligera**: se usa `node:20-alpine` para reducir tamaño.
-- **Optimización de capas**: copia `package.json` y `package-lock.json` antes del código para aprovechar cache de Docker.
-- **`.dockerignore`**: excluye `node_modules`, logs, tests y archivos de configuración locales.
-- **Variables de entorno**: `NODE_ENV`, `PORT` y `MONGO_URL` facilitan despliegues seguros.
-
-## Publicación en DockerHub
-
-1. Crea un repositorio público en DockerHub.
-2. Etiqueta la imagen local con un tag claro, por ejemplo:
+La API necesita MongoDB. Ejemplo con Mongo en el host (Windows):
 
 ```bash
-docker tag tu-usuario-dockerhub/adopciones-api:v1.0.0 tu-usuario-dockerhub/adopciones-api:latest
+docker run --rm -p 8080:8080 ^
+  -e MONGO_URL="mongodb://host.docker.internal:27017/clase39-adopme?retryWrites=true&w=majority" ^
+  -e PORT=8080 ^
+  pepeluquet/adopciones-api:v1.0.0
 ```
 
-3. Inicia sesión y sube la imagen:
+Comprueba: `http://localhost:8080/api/docs` (Swagger).
+
+### Buenas prácticas aplicadas
+
+- Imagen base **Alpine** (`node:20-alpine`) para menor tamaño.
+- **Capas en caché**: `package.json` + `package-lock.json` antes del código.
+- **`npm ci --omit=dev`**: instalación reproducible solo de producción.
+- **`.dockerignore`**: sin `node_modules` ni carpeta `test` en la imagen.
+- **Usuario no root** (`USER node`) en runtime.
+- Variables: `NODE_ENV`, `PORT`, `MONGO_URL`.
+
+## Publicación en Docker Hub
+
+Repositorio sugerido: `pepeluquet/adopciones-api` (público).
 
 ```bash
+# 1. Build local
+docker build -t pepeluquet/adopciones-api:v1.0.0 .
+
+# 2. Tag latest (opcional)
+docker tag pepeluquet/adopciones-api:v1.0.0 pepeluquet/adopciones-api:latest
+
+# 3. Login (credenciales de https://hub.docker.com/u/pepeluquet)
 docker login
 
-docker push tu-usuario-dockerhub/adopciones-api:v1.0.0
+# 4. Push
+docker push pepeluquet/adopciones-api:v1.0.0
+docker push pepeluquet/adopciones-api:latest
 ```
 
-4. Revisa la opción de escaneo de vulnerabilidades en DockerHub para la imagen recién subida.
+### Escaneo de seguridad en Docker Hub
 
-## Documentación y evidencias
+1. Entra a https://hub.docker.com/r/pepeluquet/adopciones-api
+2. Abre la pestaña **Tags** → selecciona `v1.0.0` o `latest`
+3. Usa **Scan** / **View scan results** (análisis de vulnerabilidades de la imagen)
 
-- Añade capturas de pantalla o logs de los tests con `npm test` pasando correctamente.
-- Añade capturas de la construcción de la imagen exitosa y del `docker push`.
-- Si entregas el proyecto, incluye URLs públicas: repo GitHub y URL de la imagen de DockerHub.
+Alternativa local (Docker Scout, si está instalado):
+
+```bash
+docker scout quickview pepeluquet/adopciones-api:v1.0.0
+```
+
+## Documentación API
+
+Swagger UI: `http://localhost:8080/api/docs` (con el servidor o contenedor en ejecución).
 
 ## Recomendaciones de entrega
 
-- No incluyas `node_modules` en el repositorio.
-- Mantén el repositorio limpio y con `.dockerignore` funcionando.
-- Explica en tu entrega por qué elegiste `node:20-alpine` y cómo minimizaste capas en el Dockerfile.
-- Asegúrate de que todas las URLs sean accesibles públicamente.
+- No subir `node_modules` ni archivos `.env` con secretos.
+- Incluir en la entrega: URL del repo, URL de la imagen en Docker Hub, captura o log de `npm test` y de `docker build` / `docker push`.
+- Verificar que el repositorio y la imagen sean **públicos** antes de enviar.
