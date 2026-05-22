@@ -67,6 +67,26 @@ Adoption router - functional tests
 12 passing
 ```
 
+## Variables de entorno y MongoDB
+
+La API lee `MONGO_URL` desde el entorno (`src/app.js`). Si no la defines, usa por defecto la conexión Atlas del proyecto con la base de datos `adopme`.
+
+| Escenario | Formato de `MONGO_URL` | Base de datos sugerida (entrega final) |
+|-----------|------------------------|----------------------------------------|
+| **Mongo local** (`mongod` en tu PC) | `mongodb://localhost:27017/...` | `backend-iii-adopciones` |
+| **Docker → Mongo en el host** | `mongodb://host.docker.internal:27017/...` | `backend-iii-adopciones` |
+| **MongoDB Atlas** | `mongodb+srv://usuario:contraseña@cluster....mongodb.net/adopme?retryWrites=true&w=majority` | `adopme` |
+
+Plantilla sin secretos: copia `.env.example` a `.env` y pega tu URI de Atlas. **No commitees `.env`** (está en `.gitignore`).
+
+**Atlas (ejemplo de formato, sin credenciales reales):**
+
+```
+mongodb+srv://TU_USUARIO:TU_CONTRASEÑA@cluster0.xxxxx.mongodb.net/backend-iii-adopciones?retryWrites=true&w=majority
+```
+
+En Docker usas la **misma** cadena Atlas con `-e MONGO_URL="..."` (no hace falta `host.docker.internal` para Atlas).
+
 ## Docker
 
 ### Construir imagen local
@@ -77,16 +97,73 @@ docker build -t pepeluquet/adopciones-api:v1.0.0 .
 
 ### Ejecutar contenedor
 
-La API necesita MongoDB. Ejemplo con Mongo en el host (Windows):
+La API necesita MongoDB en ejecución (local, Atlas o contenedor). Sin Mongo verás el contenedor **Up** pero la API no escuchará en el puerto hasta conectar.
 
-```bash
-docker run --rm -p 8080:8080 ^
-  -e MONGO_URL="mongodb://host.docker.internal:27017/clase39-adopme?retryWrites=true&w=majority" ^
-  -e PORT=8080 ^
+#### Mongo local en el host (PowerShell)
+
+Cuando `mongod` corre en Windows y el contenedor debe llegar al puerto 27017 del PC:
+
+```powershell
+docker run --rm -p 8080:8080 `
+  -e MONGO_URL="mongodb://host.docker.internal:27017/backend-iii-adopciones?retryWrites=true&w=majority" `
+  -e PORT=8080 `
   pepeluquet/adopciones-api:v1.0.0
 ```
 
-Comprueba: `http://localhost:8080/api/docs` (Swagger).
+#### MongoDB Atlas (PowerShell)
+
+Pega **tu** URI desde Atlas (Connect → Drivers → Node). No la subas al repo; puedes guardarla solo en `.env` local.
+
+```powershell
+# Opción recomendada: variable de entorno en la sesión (evita pegar la URL en el historial del README)
+$env:MONGO_URL = "mongodb+srv://TU_USUARIO:TU_CONTRASEÑA@cluster0.xxxxx.mongodb.net/backend-iii-adopciones?retryWrites=true&w=majority"
+
+docker run --rm -p 8080:8080 `
+  -e MONGO_URL="$env:MONGO_URL" `
+  -e PORT=8080 `
+  pepeluquet/adopciones-api:v1.0.0
+```
+
+Comprueba en el navegador: `http://localhost:8080/api/docs` (Swagger). En los logs del contenedor debe aparecer `Listening on 8080`.
+
+| Variable | Obligatoria | Ejemplo local (Docker) | Ejemplo Atlas |
+|----------|-------------|------------------------|---------------|
+| `MONGO_URL` | Sí (en Docker) | `mongodb://host.docker.internal:27017/backend-iii-adopciones?retryWrites=true&w=majority` | `mongodb+srv://usuario:pass@cluster....mongodb.net/backend-iii-adopciones?retryWrites=true&w=majority` |
+| `PORT` | No (default 8080) | `8080` | `8080` |
+| `NODE_ENV` | No | `production` (Dockerfile) | `production` (Dockerfile) |
+
+### Limpieza local (empezar de cero)
+
+Si antes probaste con nombres de plantilla, elimina contenedores e imágenes incorrectos. **No borres** `pepeluquet/adopciones-api:v1.0.0` si acabas de construirla bien.
+
+**Contenedores a eliminar** (nombres de ejemplo vistos con imagen incorrecta):
+
+- `recursing_kare`, `musing_panini`, `ecstatic_shirley` (o cualquier contenedor basado en `tu-usuario-dockerhub/...`)
+
+**Imágenes a eliminar:**
+
+| Imagen incorrecta | Motivo |
+|-------------------|--------|
+| `tu-usuario-dockerhub/adopciones-api:v1.0.0` | Placeholder del curso, no tu usuario Hub |
+| `create/aws:latest` | Imagen de ejemplo/tutorial, no es tu API |
+
+**PowerShell:**
+
+```powershell
+# Ver qué hay
+docker ps -a
+docker images
+
+# Parar y borrar contenedores viejos (ajusta los NAMES si difieren)
+docker rm -f recursing_kare musing_panini ecstatic_shirley
+
+# Borrar imágenes incorrectas
+docker rmi tu-usuario-dockerhub/adopciones-api:v1.0.0
+docker rmi create/aws:latest
+
+# Reconstruir la imagen correcta desde la raíz del proyecto
+docker build -t pepeluquet/adopciones-api:v1.0.0 .
+```
 
 ### Buenas prácticas aplicadas
 
@@ -132,8 +209,21 @@ docker scout quickview pepeluquet/adopciones-api:v1.0.0
 
 Swagger UI: `http://localhost:8080/api/docs` (con el servidor o contenedor en ejecución).
 
+## Checklist de entrega final
+
+| # | Requisito | Cómo verificar |
+|---|-----------|----------------|
+| 1 | Repo GitHub público con código, tests y Dockerfile | https://github.com/pepeluquet/backend-III-entrega |
+| 2 | Tests funcionales con mocks (Sinon + Supertest) | `npm test` → **12 passing** |
+| 3 | `supertest` en `devDependencies` | `package.json` |
+| 4 | Dockerfile + `.dockerignore` optimizados | Build local sin errores |
+| 5 | Imagen en Docker Hub: `pepeluquet/adopciones-api:v1.0.0` | Tag visible en https://hub.docker.com/r/pepeluquet/adopciones-api |
+| 6 | Escaneo de seguridad en Hub (pestaña Tags → Scan) | Captura del resultado |
+| 7 | README con instrucciones build/run/push | Este archivo |
+
 ## Recomendaciones de entrega
 
-- No subir `node_modules` ni archivos `.env` con secretos.
+- No subir `node_modules` ni `.env` (incluido en `.gitignore`). Usa `.env.example` como plantilla.
 - Incluir en la entrega: URL del repo, URL de la imagen en Docker Hub, captura o log de `npm test` y de `docker build` / `docker push`.
 - Verificar que el repositorio y la imagen sean **públicos** antes de enviar.
+- Capturas sugeridas: terminal con `npm test`, `docker build`, `docker push`, Docker Hub (repositorio + tag `v1.0.0` + scan), y opcionalmente Swagger en `http://localhost:8080/api/docs`.

@@ -11,7 +11,7 @@ import sessionsRouter from './routes/sessions.router.js';
 
 const app = express();
 const PORT = process.env.PORT || 8080;
-const MONGO_URL = process.env.MONGO_URL || 'mongodb://localhost:27017/clase39-adopme?retryWrites=true&w=majority';
+const MONGO_URL = process.env.MONGO_URL || 'mongodb+srv://pepeluquet_db_user:rIf6BsY4ihXxdulx@cluster001.0zqj46f.mongodb.net/adopme?retryWrites=true&w=majority';
 
 // Documentacion
 const swaggerOptions = {
