@@ -11,7 +11,19 @@ import sessionsRouter from './routes/sessions.router.js';
 
 const app = express();
 const PORT = process.env.PORT || 8080;
-const MONGO_URL = process.env.MONGO_URL || 'mongodb+srv://pepeluquet_db_user:rIf6BsY4ihXxdulx@cluster001.0zqj46f.mongodb.net/adopme?retryWrites=true&w=majority';
+const rawMongoUrl = process.env.MONGO_URL?.trim();
+const defaultMongoUrl = 'mongodb+srv://pepeluquet_db_user:rIf6BsY4ihXxdulx@cluster001.0zqj46f.mongodb.net/adopme?retryWrites=true&w=majority';
+const MONGO_URL = rawMongoUrl && rawMongoUrl !== '""' && rawMongoUrl !== "''"
+  ? rawMongoUrl.replace(/^['"]|['"]$/g, '')
+  : defaultMongoUrl;
+
+mongoose.set('strictQuery', false);
+
+if (!/^mongodb(?:\+srv)?:\/\//.test(MONGO_URL)) {
+  console.error('Invalid MONGO_URL scheme. Use mongodb:// or mongodb+srv://.');
+  console.error('MONGO_URL actual:', MONGO_URL);
+  process.exit(1);
+}
 
 // Documentacion
 const swaggerOptions = {

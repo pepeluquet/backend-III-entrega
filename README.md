@@ -82,8 +82,10 @@ Plantilla sin secretos: copia `.env.example` a `.env` y pega tu URI de Atlas. **
 **Atlas (ejemplo de formato, sin credenciales reales):**
 
 ```
-mongodb+srv://TU_USUARIO:TU_CONTRASEÑA@cluster0.xxxxx.mongodb.net/backend-iii-adopciones?retryWrites=true&w=majority
+mongodb+srv://TU_USUARIO:TU_CONTRASEÑA@cluster0.xxxxx.mongodb.net/adopme?retryWrites=true&w=majority
 ```
+
+> Importante: si usas PowerShell, envía la variable con comillas dobles y evita incluir comillas simples dentro del valor. Si el valor recibe comillas adicionales, el proyecto las elimina al iniciar.
 
 En Docker usas la **misma** cadena Atlas con `-e MONGO_URL="..."` (no hace falta `host.docker.internal` para Atlas).
 
