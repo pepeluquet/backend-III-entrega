@@ -9,8 +9,9 @@ API en Node.js/Express para gestionar adopciones de mascotas.
 | **Repositorio GitHub** (código, tests, Dockerfile) | https://github.com/pepeluquet/backend-III-entrega |
 | **Docker Hub (usuario)** | https://hub.docker.com/u/pepeluquet |
 | **Imagen Docker pública** | https://hub.docker.com/r/pepeluquet/adopciones-api |
+| **Tests de adopciones** | https://github.com/pepeluquet/backend-III-entrega/blob/main/test/adoptions.router.test.js |
 
-> Si la imagen aún no está publicada, sigue la sección [Publicación en Docker Hub](#publicación-en-docker-hub) y actualiza el tag `v1.0.0` / `latest` en tu cuenta.
+Imagen publicada en Docker Hub con tags `v1.0.0` y `latest`.
 
 ## Estructura del proyecto
 
@@ -49,7 +50,7 @@ Salida esperada (resumen): **12 passing** — casos de éxito, validación (400)
 
 ### Evidencia de tests
 
-Guarda la salida completa del comando anterior o una captura en `docs/evidencias/tests.png` (opcional). Ejemplo de salida exitosa:
+Salida verificada en [`docs/evidencias/tests-output.txt`](docs/evidencias/tests-output.txt) (**12 passing**). Puedes añadir una captura en `docs/evidencias/tests.png` si lo pide la entrega. Ejemplo de salida exitosa:
 
 ```
 Adoption router - functional tests
@@ -69,7 +70,7 @@ Adoption router - functional tests
 
 ## Variables de entorno y MongoDB
 
-La API lee `MONGO_URL` desde el entorno (`src/app.js`). Si no la defines, usa por defecto la conexión Atlas del proyecto con la base de datos `adopme`.
+La API lee `MONGO_URL` desde el entorno (`src/app.js`). Si no la defines, usa por defecto MongoDB local: `mongodb://localhost:27017/backend-iii-adopciones`. Para Atlas u otra URI, define `MONGO_URL` en `.env` (ver `.env.example`).
 
 | Escenario | Formato de `MONGO_URL` | Base de datos sugerida (entrega final) |
 |-----------|------------------------|----------------------------------------|

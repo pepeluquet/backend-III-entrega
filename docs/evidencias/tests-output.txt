@@ -1,0 +1,24 @@
+> plantilladocumentacion@1.0.0 test
+> cross-env NODE_ENV=test mocha --recursive test
+
+
+
+  Adoption router - functional tests
+    GET /api/adoptions
+      √ returns 200 and all adoptions on success
+      √ returns 500 when the service throws
+    GET /api/adoptions/:aid
+      √ returns 200 and the adoption when found
+      √ returns 400 for an invalid adoption id
+      √ returns 404 when the adoption does not exist
+      √ returns 500 when the service throws
+    POST /api/adoptions/:uid/:pid
+      √ returns 201 when adoption is created successfully
+      √ returns 400 for invalid user or pet id
+      √ returns 404 when user is not found
+      √ returns 404 when pet is not found
+      √ returns 400 when pet is already adopted
+      √ returns 500 when the service throws
+
+
+  12 passing (229ms)
