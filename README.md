@@ -223,10 +223,3 @@ Swagger UI: `http://localhost:8080/api/docs` (con el servidor o contenedor en ej
 | 5 | Imagen en Docker Hub: `pepeluquet/adopciones-api:v1.0.0` | Tag visible en https://hub.docker.com/r/pepeluquet/adopciones-api |
 | 6 | Escaneo de seguridad en Hub (pestaña Tags → Scan) | Captura del resultado |
 | 7 | README con instrucciones build/run/push | Este archivo |
-
-## Recomendaciones de entrega
-
-- No subir `node_modules` ni `.env` (incluido en `.gitignore`). Usa `.env.example` como plantilla.
-- Incluir en la entrega: URL del repo, URL de la imagen en Docker Hub, captura o log de `npm test` y de `docker build` / `docker push`.
-- Verificar que el repositorio y la imagen sean **públicos** antes de enviar.
-- Capturas sugeridas: terminal con `npm test`, `docker build`, `docker push`, Docker Hub (repositorio + tag `v1.0.0` + scan), y opcionalmente Swagger en `http://localhost:8080/api/docs`.
